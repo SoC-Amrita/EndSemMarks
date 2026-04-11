@@ -1045,6 +1045,8 @@ body {
   padding: 28px;
   background: rgba(15, 23, 42, 0.34);
   backdrop-filter: blur(10px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .context-dialog {
@@ -1059,6 +1061,8 @@ body {
 }
 
 .theme-studio-dialog {
+  display: flex;
+  flex-direction: column;
   width: min(1120px, 100%);
   max-height: 88vh;
   overflow: hidden;
@@ -1136,7 +1140,10 @@ body {
 .theme-studio-layout {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);
+  flex: 1;
   max-height: calc(88vh - 96px);
+  min-height: 0;
+  overflow: hidden;
 }
 
 .theme-studio-sidebar-pane {
@@ -1252,6 +1259,8 @@ body {
 .theme-studio-scroll-pane {
   overflow-y: auto;
   padding: 24px;
+  min-height: 0;
+  overscroll-behavior: contain;
 }
 
 .theme-picker-grid {

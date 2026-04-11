@@ -275,6 +275,11 @@ export default function App() {
   useEffect(() => {
     if (!showThemeStudio && !showPasswordDialog) return undefined;
 
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+
     const handleEscape = (event) => {
       if (event.key === 'Escape') {
         setShowThemeStudio(false);
@@ -284,6 +289,8 @@ export default function App() {
 
     document.addEventListener('keydown', handleEscape);
     return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
       document.removeEventListener('keydown', handleEscape);
     };
   }, [showThemeStudio, showPasswordDialog]);

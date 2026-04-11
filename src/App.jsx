@@ -311,6 +311,19 @@ export default function App() {
     reader.readAsText(file);
   };
 
+  const handleDeleteSection = async () => {
+    if (!window.confirm(`Delete ALL marks for Section VI ${activeSection}? This cannot be undone.`)) return;
+    if (supabase) {
+      const { error } = await supabase.from('marks').delete().eq('section', activeSection);
+      if (error) {
+        alert('Error deleting records: ' + error.message);
+      } else {
+        setMarks(prev => ({ ...prev, [activeSection]: {} }));
+        alert(`All marks for Section VI ${activeSection} have been cleared.`);
+      }
+    }
+  };
+
   return (
     <div className="app-container">
       <aside className="sidebar no-print">
@@ -340,6 +353,12 @@ export default function App() {
            </>
         )}
         
+        {userRole === 'admin' && (
+          <button onClick={handleDeleteSection} className="btn-danger" style={{ marginTop: '10px', background: '#c0392b' }}>
+            🗑 Clear Section {activeSection} Records
+          </button>
+        )}
+
         <button onClick={async () => await supabase.auth.signOut()} className="btn-danger">Logout Session</button>
       </aside>
 

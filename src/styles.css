@@ -1,0 +1,286 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  background-color: #f0f2f5;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  color: #333;
+}
+
+.small-caps {
+  font-variant: small-caps;
+}
+
+
+.app-container {
+  display: flex;
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  align-items: flex-start;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.bulk-manager {
+  background: white;
+  width: 210mm;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.15);
+  font-family: sans-serif;
+  text-align: center;
+}
+
+.bulk-manager h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.file-input-wrapper {
+  margin-top: 30px;
+  padding: 40px;
+  border: 2px dashed #007bff;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.sidebar {
+  background: white;
+  padding: 25px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: sticky;
+  top: 20px;
+  flex-shrink: 0;
+}
+
+.sidebar label {
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: -5px;
+}
+
+.sidebar select, .sidebar button {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 10px;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-danger {
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 25px;
+}
+
+.btn-danger:hover {
+  background-color: #c9302c;
+}
+
+.controls {
+  background: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  font-family: sans-serif;
+}
+
+.controls select {
+  padding: 5px 10px;
+  font-size: 16px;
+}
+
+.controls button {
+  padding: 6px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.controls button:hover {
+  background-color: #0056b3;
+}
+
+.sheet {
+  background: white;
+  width: 210mm; /* A4 width */
+  min-height: 297mm; /* A4 height */
+  padding: 10mm;
+  box-shadow: 0 0 10px rgba(0,0,0,0.15);
+  margin-bottom: 20px;
+}
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.font-bold { font-weight: bold; }
+.font-extrabold { font-weight: 800; }
+.font-normal { font-weight: normal; }
+.uppercase { text-transform: uppercase; }
+.text-md { font-size: 16px; }
+.text-sm { font-size: 13px; }
+.border-y { border-top: 1px solid black; border-bottom: 1px solid black; }
+.p-1 { padding: 4px 0; }
+.mt-1 { margin-top: 5px; }
+.mb-1 { margin-bottom: 5px; }
+.mt-4 { margin-top: 40px; }
+.mb-2 { margin-bottom: 10px; }
+.flex-between { display: flex; justify-content: space-between; }
+.flex-end { display: flex; justify-content: flex-end; }
+
+.header-info { margin-bottom: 10px; }
+.header-details { width: 100%; border: 1px solid transparent; } /* align padding if needed */
+
+.marks-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+}
+
+.marks-table th, .marks-table td {
+  border: 1px solid black;
+  padding: 3px;
+  font-size: 12pt;
+}
+
+.no-border {
+  border: none !important;
+}
+
+.marks-table th { /* Exact Excel header match */
+  background-color: #fff;
+  text-align: center;
+}
+
+.col-sno { width: 5%; }
+.col-roll { width: 25%; }
+.col-marks { width: 70%; }
+.col-figures { width: 25%; }
+.col-words { width: 45%; }
+
+.mark-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.words-display {
+  width: 100%;
+  min-height: 18px;
+  padding-left: 5px;
+}
+
+.signatures {
+  margin-top: 50px;
+  width: 100%;
+}
+
+.sign-block {
+  width: 40%;
+}
+
+.sign-line {
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 5px;
+}
+
+.name-block {
+  display: flex;
+  flex-direction: column;
+}
+
+/* PRINT STYLES */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 3mm;
+  }
+  body {
+    background: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .app-container {
+    display: block;
+    margin: 0;
+    padding: 0;
+  }
+
+  .main-content {
+    display: block;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+  .sheet {
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+  }
+  .marks-table {
+    width: 100%;
+    table-layout: fixed;
+  }
+  .marks-table th, .marks-table td {
+    padding: 1px 2px;
+        font-size: 12px;
+  }
+  .mark-input {
+    appearance: none;
+    font-size: 12px;
+    padding: 0;
+  }
+  .words-display {
+    font-size: 12px;
+    min-height: auto;
+  }
+  .signatures {
+    margin-top: 5px;
+    font-size: 10px;
+  }
+}

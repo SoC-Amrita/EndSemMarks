@@ -1013,8 +1013,8 @@ export default function App() {
                           <th colSpan="4" className="text-center font-bold small-caps no-border" style={{ fontSize: '16pt' }}>Marks Sheet for Theory Examinations</th>
                         </tr>
                         <tr>
-                          <th colSpan="3" className="font-bold no-border" style={{ textAlign: "left", whiteSpace: "nowrap" }}>Branch : Computer Science and Engineering</th>
-                          <th colSpan="1" className="font-bold no-border" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Semester : VI {activeSection}</th>
+                          <th colSpan="3" className="font-bold no-border" style={{ textAlign: "left", whiteSpace: "nowrap" }}>Branch : CSE {activeSection}</th>
+                          <th colSpan="1" className="font-bold no-border" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Semester : VI</th>
                         </tr>
                         <tr>
                           <th colSpan="4" className="font-bold no-border" style={{ textAlign: "left" }}>Subject Code & Title : 23CSE311 Software Engineering</th>

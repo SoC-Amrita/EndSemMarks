@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { numberToWords } from './utils';
-import * as XLSX from 'xlsx';
 import studentsData from './students.json';
 import { supabase } from './supabaseClient';
 import Login from './Login';
@@ -16,6 +15,11 @@ export default function App() {
   const [userRole, setUserRole] = useState(null);
   const [reviewerName, setReviewerName] = useState('Dr. Vandhana S');
   const [debugMsg, setDebugMsg] = useState('');
+  const [showPasswordPanel, setShowPasswordPanel] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordFeedback, setPasswordFeedback] = useState(null);
+  const [passwordUpdating, setPasswordUpdating] = useState(false);
 
   // Reload reviewer per section when active section changes
   useEffect(() => {
@@ -166,57 +170,6 @@ export default function App() {
     window.print();
   };
 
-  const handleExportExcel = () => {
-    const ws_data = [
-      ["Amrita Vishwa Vidyapeetham"],
-      ["B.Tech (2023) Degree Examination March 2026"],
-      ["Marks Sheet for Theory Examinations"],
-      ["Branch : Computer Science and Engineering", "", `Semester : VI ${activeSection}`, ""],
-      ["Subject Code & Title : 23CSE311 Software Engineering"],
-      [],
-      ["S.No.", "Roll No.", "Marks Awarded (Max Marks : 50)", ""],
-      ["", "", "In Figures", "In Words"]
-    ];
-
-    const activeStudentsData = studentsData[activeSection] || [];
-    activeStudentsData.forEach((rollNo, index) => {
-      const val = marks[activeSection]?.[rollNo] || '';
-      ws_data.push([index + 1, rollNo, val, numberToWords(val)]);
-    });
-
-    ws_data.push([]);
-    ws_data.push([]);
-    ws_data.push(["Signature of the Reviewer with Date", "", "", "Signature of the Examiner with Date"]);
-    ws_data.push([]);
-    ws_data.push([]);
-    ws_data.push([reviewerName, "", "", activeExaminer]);
-    ws_data.push(["Name in Capitals", "", "", "Name in Capitals"]);
-
-    const ws = XLSX.utils.aoa_to_sheet(ws_data);
-    
-    ws['!cols'] = [
-      { wch: 8 }, 
-      { wch: 20 },
-      { wch: 15 },
-      { wch: 40 }
-    ];
-
-    ws['!merges'] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
-      { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } },
-      { s: { r: 2, c: 0 }, e: { r: 2, c: 3 } },
-      { s: { r: 3, c: 0 }, e: { r: 3, c: 1 } },
-      { s: { r: 3, c: 2 }, e: { r: 3, c: 3 } },
-      { s: { r: 4, c: 0 }, e: { r: 4, c: 3 } },
-      { s: { r: 6, c: 0 }, e: { r: 7, c: 0 } },
-      { s: { r: 6, c: 1 }, e: { r: 7, c: 1 } },
-      { s: { r: 6, c: 2 }, e: { r: 6, c: 3 } }
-    ];
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Marks");
-    XLSX.writeFile(wb, `Marks_Sheet_VI_${activeSection}.xlsx`);
-  };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' || e.key === 'ArrowDown') {
@@ -324,60 +277,194 @@ export default function App() {
     }
   };
 
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPasswordFeedback(null);
+
+    if (newPassword.length < 6) {
+      setPasswordFeedback({ type: 'error', message: 'Password must be at least 6 characters long.' });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordFeedback({ type: 'error', message: 'New password and confirmation do not match.' });
+      return;
+    }
+
+    if (!supabase) {
+      setPasswordFeedback({ type: 'error', message: 'Database connection error. Check configuration.' });
+      return;
+    }
+
+    setPasswordUpdating(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setPasswordUpdating(false);
+
+    if (error) {
+      setPasswordFeedback({ type: 'error', message: error.message });
+      return;
+    }
+
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordFeedback({ type: 'success', message: 'Password updated successfully.' });
+    setShowPasswordPanel(false);
+  };
+
   return (
     <div className="app-container">
       <aside className="sidebar no-print">
-        <label>Select View:</label>
-        <select value={viewMode} onChange={e => setViewMode(e.target.value)}>
-          <option value="sheet">Marks Entry Sheet</option>
-          <option value="bulk">Bulk CSV Manager</option>
-        </select>
+        <div className="sidebar-header">
+          <div className="sidebar-kicker">Faculty Workspace</div>
+          <h2>Marks Console</h2>
+        </div>
 
-        <label>Select Section:</label>
-        <select value={activeSection} onChange={e => setActiveSection(e.target.value)}>
-          {sections.map(sec => (
-            <option key={sec} value={sec}>VI {sec}</option>
-          ))}
-        </select>
+        <div className="sidebar-status-card">
+          <div>
+            <span className="sidebar-status-label">Active Section</span>
+            <strong>VI {activeSection}</strong>
+          </div>
+          <span className="sidebar-role-pill">{userRole === 'admin' ? 'Admin' : 'Faculty'}</span>
+        </div>
+
+        <div className="sidebar-stats">
+          <div className="sidebar-stat">
+            <span>Assigned</span>
+            <strong>{sections.length}</strong>
+          </div>
+          <div className="sidebar-stat">
+            <span>Mode</span>
+            <strong>{viewMode === 'sheet' ? 'Sheet' : 'CSV'}</strong>
+          </div>
+        </div>
+
+        <div className="sidebar-field">
+          <label>Select View</label>
+          <select value={viewMode} onChange={e => setViewMode(e.target.value)}>
+            <option value="sheet">Marks Entry Sheet</option>
+            <option value="bulk">Bulk CSV Manager</option>
+          </select>
+        </div>
+
+        <div className="sidebar-field">
+          <label>Select Section</label>
+          <select value={activeSection} onChange={e => setActiveSection(e.target.value)}>
+            {sections.map(sec => (
+              <option key={sec} value={sec}>VI {sec}</option>
+            ))}
+          </select>
+        </div>
         
         {viewMode === 'sheet' && (
-           <>
-             <label>Reviewer Setup:</label>
-             <select value={reviewerName} onChange={e => { setReviewerName(e.target.value); localStorage.setItem(`reviewerName_${activeSection}`, e.target.value); }}>
-               <option value="Dr. Vandhana S">Dr. Vandhana S</option>
-               <option value="Prof. Neethu M R">Prof. Neethu M R</option>
-             </select>
+          <>
+            <div className="sidebar-field">
+              <label>Reviewer Setup</label>
+              <select value={reviewerName} onChange={e => { setReviewerName(e.target.value); localStorage.setItem(`reviewerName_${activeSection}`, e.target.value); }}>
+                <option value="Dr. Vandhana S">Dr. Vandhana S</option>
+                <option value="Prof. Neethu M R">Prof. Neethu M R</option>
+              </select>
+            </div>
 
-             <button onClick={handlePrint} className="btn-primary">Print Sheet</button>
-             <button onClick={handleExportExcel} className="btn-primary" style={{ marginTop: '10px', background: '#28a745' }}>Download as Excel</button>
-           </>
+            <button onClick={handlePrint} className="btn-primary">Print Sheet</button>
+          </>
         )}
         
         {userRole === 'admin' && (
-          <button onClick={handleDeleteSection} className="btn-danger" style={{ marginTop: '10px', background: '#c0392b' }}>
-            🗑 Clear Section {activeSection} Records
+          <button onClick={handleDeleteSection} className="btn-danger sidebar-spaced-action">
+            Clear Section {activeSection} Records
           </button>
         )}
 
-        <button onClick={async () => await supabase.auth.signOut()} className="btn-danger">Logout Session</button>
+        <div className="sidebar-session-card">
+          <span className="sidebar-status-label">Signed In</span>
+          <div className="sidebar-session-email">{session.user.email}</div>
+        </div>
+
+        <div className="sidebar-password-card">
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => {
+              setShowPasswordPanel(prev => !prev);
+              setPasswordFeedback(null);
+            }}
+          >
+            {showPasswordPanel ? 'Hide Password Change' : 'Change Password'}
+          </button>
+
+          {showPasswordPanel && (
+            <form onSubmit={handlePasswordChange} className="password-form">
+              <label className="sidebar-field">
+                <span className="password-field-label">New Password</span>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  placeholder="Enter a new password"
+                  autoComplete="new-password"
+                  required
+                />
+              </label>
+
+              <label className="sidebar-field">
+                <span className="password-field-label">Confirm Password</span>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter the new password"
+                  autoComplete="new-password"
+                  required
+                />
+              </label>
+
+              <button type="submit" className="btn-primary" disabled={passwordUpdating}>
+                {passwordUpdating ? 'Updating Password...' : 'Save New Password'}
+              </button>
+            </form>
+          )}
+
+          {passwordFeedback && (
+            <div className={`password-feedback ${passwordFeedback.type === 'error' ? 'password-feedback-error' : 'password-feedback-success'}`}>
+              {passwordFeedback.message}
+            </div>
+          )}
+        </div>
+
+        <button onClick={async () => await supabase.auth.signOut()} className="btn-danger btn-ghost-danger">Logout Session</button>
       </aside>
 
       <main className="main-content">
         {viewMode === 'bulk' ? (
         <div className="bulk-manager">
-          <h3>Mass Import for Section VI {activeSection}</h3>
-          <p>Download a cleanly formatted CSV template listing all students in this section, modify it in Excel, and upload it to instantly sync the database.</p>
-          
-          <button 
-            onClick={downloadTemplate}
-            style={{ padding: '10px 20px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-          >
-            Download Pre-filled Template (.csv)
-          </button>
-          
-          <div className="file-input-wrapper">
-             <h4>Upload Completed CSV</h4>
-             <input type="file" accept=".csv" onChange={handleFileUpload} />
+          <div className="bulk-manager-header">
+            <span className="bulk-kicker">CSV Import</span>
+            <h3>Bulk sync for Section VI {activeSection}</h3>
+            <p>Use the prepared roster template, fill in marks offline, and upload the completed CSV to update this section in one pass.</p>
+          </div>
+
+          <div className="bulk-manager-grid">
+            <section className="bulk-card">
+              <span className="bulk-card-step">Step 1</span>
+              <h4>Download the roster template</h4>
+              <p>Get a clean CSV with every student in the current section already listed and ready for marks entry.</p>
+              <button onClick={downloadTemplate} className="bulk-download-btn">
+                Download Pre-filled Template
+              </button>
+            </section>
+
+            <section className="bulk-card bulk-card-upload">
+              <span className="bulk-card-step">Step 2</span>
+              <h4>Upload the completed file</h4>
+              <p>Accepted format: `.csv`. The upload syncs marks directly to the database for Section VI {activeSection}.</p>
+              <div className="file-input-wrapper">
+                <input type="file" accept=".csv" onChange={handleFileUpload} />
+                <div className="file-input-copy">
+                  <strong>Select CSV file</strong>
+                  <span>Choose the completed sheet to import marks instantly.</span>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
       ) : (
@@ -442,22 +529,25 @@ export default function App() {
           </table>
 
           {chunkIndex === studentChunks.length - 1 && (
-            <div className="signatures flex-between font-bold">
-              <div className="sign-block">
-                <div className="sign-line">Signature of the Reviewer with Date</div>
-                <div className="name-block mt-1">
-                  <div className="small-caps">{reviewerName}</div>
-                  <div className="font-normal text-sm small-caps">Name in Capitals</div>
+            <>
+              <div style={{ height: '120px' }}></div>
+              <div className="signatures flex-between font-bold">
+                <div className="sign-block">
+                  <div className="sign-line">Signature of the Reviewer with Date</div>
+                  <div className="name-block mt-1">
+                    <div className="small-caps">{reviewerName}</div>
+                    <div className="font-normal text-sm small-caps">Name in Capitals</div>
+                  </div>
+                </div>
+                <div className="sign-block text-right">
+                  <div className="sign-line">Signature of the Examiner with Date</div>
+                  <div className="name-block mt-1 text-right">
+                    <div className="small-caps">{activeExaminer}</div>
+                    <div className="font-normal text-sm small-caps flex-end">Name in Capitals</div>
+                  </div>
                 </div>
               </div>
-              <div className="sign-block text-right">
-                <div className="sign-line">Signature of the Examiner with Date</div>
-                <div className="name-block mt-1 text-right">
-                  <div className="small-caps">{activeExaminer}</div>
-                  <div className="font-normal text-sm small-caps flex-end">Name in Capitals</div>
-                </div>
-              </div>
-            </div>
+            </>
           )}
         </div>
         ))

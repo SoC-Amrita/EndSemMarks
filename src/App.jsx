@@ -258,7 +258,10 @@ export default function App() {
 
       if (supabase && upsertPayload.length > 0) {
          await supabase.from('marks').upsert(upsertPayload);
+         setViewMode('sheet');
          alert(`Successfully imported ${upsertPayload.length} marks for section VI ${activeSection}!`);
+      } else if (upsertPayload.length > 0) {
+         setViewMode('sheet');
       }
     };
     reader.readAsText(file);

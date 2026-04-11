@@ -173,7 +173,6 @@ export default function App() {
   const [userRole, setUserRole] = useState(null);
   const [reviewerName, setReviewerName] = useState('Dr. Vandhana S');
   const [reviewersBySection, setReviewersBySection] = useState(() => buildDefaultReviewerState(allSections));
-  const [reviewerStorageAvailable, setReviewerStorageAvailable] = useState(true);
   const [debugMsg, setDebugMsg] = useState('');
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [showThemeStudio, setShowThemeStudio] = useState(false);
@@ -183,9 +182,11 @@ export default function App() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordFeedback, setPasswordFeedback] = useState(null);
   const [passwordUpdating, setPasswordUpdating] = useState(false);
+  const [pdfExporting, setPdfExporting] = useState(false);
   const [theme, setTheme] = useState(DEFAULT_PALETTE);
   const [fontPreference, setFontPreference] = useState('serif');
   const accountMenuRef = useRef(null);
+  const sheetExportRef = useRef(null);
   const userId = session?.user?.id ?? null;
 
   useEffect(() => {
@@ -391,14 +392,10 @@ export default function App() {
        .in('section', allowedSections);
 
      if (error) {
-       if (isMissingTableError(error, 'section_reviewers')) {
-         setReviewerStorageAvailable(false);
-       }
        setReviewersBySection(defaults);
        return;
      }
 
-     setReviewerStorageAvailable(true);
      const next = { ...defaults };
      data?.forEach((row) => {
        if (row.section) {
@@ -497,13 +494,101 @@ export default function App() {
     }
   };
 
-  const handleSavePdf = () => {
-    const previousTitle = document.title;
-    document.title = `marks_sheet_vi_${activeSection}`;
-    window.print();
-    window.setTimeout(() => {
-      document.title = previousTitle;
-    }, 0);
+  const handleSavePdf = async () => {
+    if (pdfExporting || !sheetExportRef.current) return;
+
+    const sheetNodes = Array.from(sheetExportRef.current.querySelectorAll('.sheet'));
+    if (!sheetNodes.length) return;
+
+    setPdfExporting(true);
+
+    let exportRoot = null;
+
+    try {
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
+      }
+
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ]);
+
+      exportRoot = document.createElement('div');
+      Object.assign(exportRoot.style, {
+        position: 'fixed',
+        left: '-100000px',
+        top: '0',
+        width: '210mm',
+        padding: '0',
+        margin: '0',
+        background: '#ffffff',
+        zIndex: '-1',
+      });
+      document.body.appendChild(exportRoot);
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true,
+      });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      for (let index = 0; index < sheetNodes.length; index += 1) {
+        const sheetNode = sheetNodes[index];
+        const clone = sheetNode.cloneNode(true);
+        clone.style.margin = '0';
+        clone.style.boxShadow = 'none';
+        clone.style.pageBreakAfter = 'auto';
+        clone.style.breakAfter = 'auto';
+
+        clone.querySelectorAll('.mark-input').forEach((input) => {
+          const exportValue = document.createElement('div');
+          exportValue.textContent = input.value || '';
+          Object.assign(exportValue.style, {
+            width: '100%',
+            minHeight: '18px',
+            border: 'none',
+            background: 'transparent',
+            fontFamily: 'inherit',
+            fontSize: 'inherit',
+            lineHeight: 'inherit',
+            textAlign: 'center',
+            padding: '0',
+          });
+          input.replaceWith(exportValue);
+        });
+
+        exportRoot.appendChild(clone);
+
+        // Let layout settle before rasterizing the cloned A4 sheet.
+        await new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
+
+        const canvas = await html2canvas(clone, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+        });
+
+        if (index > 0) {
+          pdf.addPage();
+        }
+
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+        exportRoot.removeChild(clone);
+      }
+
+      pdf.save(`marks_sheet_vi_${activeSection}.pdf`);
+    } catch (error) {
+      window.alert(`Unable to export PDF: ${error?.message || 'Unexpected error'}`);
+    } finally {
+      if (exportRoot?.parentNode) {
+        exportRoot.parentNode.removeChild(exportRoot);
+      }
+      setPdfExporting(false);
+    }
   };
 
 
@@ -686,7 +771,6 @@ export default function App() {
 
       if (error) {
         if (isMissingTableError(error, 'section_reviewers')) {
-          setReviewerStorageAvailable(false);
           window.alert('Reviewer persistence is not enabled in Supabase yet. Run the `section_reviewers` SQL in the Supabase SQL editor once, and reviewer choices will persist across logins.');
           return;
         }
@@ -699,8 +783,6 @@ export default function App() {
         window.alert(`Unable to save reviewer selection: ${error.message}`);
         return;
       }
-
-      setReviewerStorageAvailable(true);
     }
   };
 
@@ -907,89 +989,91 @@ export default function App() {
               </div>
             </div>
           ) : (
-            studentChunks.map((chunk, chunkIndex) => (
-              <div key={chunkIndex} className="sheet" style={{ pageBreakAfter: chunkIndex < studentChunks.length - 1 ? 'always' : 'auto' }}>
-              <table className="marks-table">
-                <thead>
-                  {chunkIndex === 0 && (
-                    <>
-                      <tr>
-                        <th colSpan="4" className="text-center no-border" style={{ fontWeight: 'normal', fontSize: '16pt' }}>Amrita Vishwa Vidyapeetham</th>
-                      </tr>
-                      <tr>
-                        <th colSpan="4" className="text-center font-bold no-border" style={{ fontSize: '16pt' }}>B.Tech (2023) Degree Examination March 2026</th>
-                      </tr>
-                      <tr>
-                        <th colSpan="4" className="text-center font-bold small-caps no-border" style={{ fontSize: '16pt' }}>Marks Sheet for Theory Examinations</th>
-                      </tr>
-                      <tr>
-                        <th colSpan="3" className="font-bold no-border" style={{ textAlign: "left", whiteSpace: "nowrap" }}>Branch : Computer Science and Engineering</th>
-                        <th colSpan="1" className="font-bold no-border" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Semester : VI {activeSection}</th>
-                      </tr>
-                      <tr>
-                        <th colSpan="4" className="font-bold no-border" style={{ textAlign: "left" }}>Subject Code & Title : 23CSE311 Software Engineering</th>
-                      </tr>
-                    </>
-                  )}
-                  <tr>
-                    <th className="col-sno" rowSpan="2">S.No.</th>
-                    <th className="col-roll" rowSpan="2">Roll No.</th>
-                    <th className="col-marks" colSpan="2">Marks Awarded (Max Marks : 50)</th>
-                  </tr>
-                  <tr>
-                    <th className="col-figures">In Figures</th>
-                    <th className="col-words">In Words</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {chunk.map((rollNo, chunkLocalIndex) => {
-                    const overallIndex = chunkIndex === 0 ? chunkLocalIndex : (30 + ((chunkIndex - 1) * 36)) + chunkLocalIndex;
-                    const val = marks[activeSection][rollNo] || '';
-                    return (
-                      <tr key={rollNo}>
-                        <td className="text-center">{overallIndex + 1}</td>
-                        <td className="text-center">{rollNo}</td>
-                        <td>
-                          <input 
-                            type="text" 
-                            className="mark-input text-center"
-                            value={val}
-                            onChange={e => handleMarkChange(rollNo, e.target.value)}
-                            onKeyDown={handleKeyDown}
-                          />
-                        </td>
-                        <td className="text-center">
-                          <div className="words-display">{numberToWords(val)}</div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div ref={sheetExportRef}>
+              {studentChunks.map((chunk, chunkIndex) => (
+                <div key={chunkIndex} className="sheet" style={{ pageBreakAfter: chunkIndex < studentChunks.length - 1 ? 'always' : 'auto' }}>
+                <table className="marks-table">
+                  <thead>
+                    {chunkIndex === 0 && (
+                      <>
+                        <tr>
+                          <th colSpan="4" className="text-center no-border" style={{ fontWeight: 'normal', fontSize: '16pt' }}>Amrita Vishwa Vidyapeetham</th>
+                        </tr>
+                        <tr>
+                          <th colSpan="4" className="text-center font-bold no-border" style={{ fontSize: '16pt' }}>B.Tech (2023) Degree Examination March 2026</th>
+                        </tr>
+                        <tr>
+                          <th colSpan="4" className="text-center font-bold small-caps no-border" style={{ fontSize: '16pt' }}>Marks Sheet for Theory Examinations</th>
+                        </tr>
+                        <tr>
+                          <th colSpan="3" className="font-bold no-border" style={{ textAlign: "left", whiteSpace: "nowrap" }}>Branch : Computer Science and Engineering</th>
+                          <th colSpan="1" className="font-bold no-border" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Semester : VI {activeSection}</th>
+                        </tr>
+                        <tr>
+                          <th colSpan="4" className="font-bold no-border" style={{ textAlign: "left" }}>Subject Code & Title : 23CSE311 Software Engineering</th>
+                        </tr>
+                      </>
+                    )}
+                    <tr>
+                      <th className="col-sno" rowSpan="2">S.No.</th>
+                      <th className="col-roll" rowSpan="2">Roll No.</th>
+                      <th className="col-marks" colSpan="2">Marks Awarded (Max Marks : 50)</th>
+                    </tr>
+                    <tr>
+                      <th className="col-figures">In Figures</th>
+                      <th className="col-words">In Words</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {chunk.map((rollNo, chunkLocalIndex) => {
+                      const overallIndex = chunkIndex === 0 ? chunkLocalIndex : (30 + ((chunkIndex - 1) * 36)) + chunkLocalIndex;
+                      const val = marks[activeSection][rollNo] || '';
+                      return (
+                        <tr key={rollNo}>
+                          <td className="text-center">{overallIndex + 1}</td>
+                          <td className="text-center">{rollNo}</td>
+                          <td>
+                            <input 
+                              type="text" 
+                              className="mark-input text-center"
+                              value={val}
+                              onChange={e => handleMarkChange(rollNo, e.target.value)}
+                              onKeyDown={handleKeyDown}
+                            />
+                          </td>
+                          <td className="text-center">
+                            <div className="words-display">{numberToWords(val)}</div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
 
-              {chunkIndex === studentChunks.length - 1 && (
-                <>
-                  <div style={{ height: '120px' }}></div>
-                  <div className="signatures flex-between font-bold">
-                    <div className="sign-block">
-                      <div className="sign-line">Signature of the Reviewer with Date</div>
-                      <div className="name-block mt-1">
-                        <div className="small-caps">{reviewerName}</div>
-                        <div className="font-normal text-sm small-caps">Name in Capitals</div>
+                {chunkIndex === studentChunks.length - 1 && (
+                  <>
+                    <div style={{ height: '120px' }}></div>
+                    <div className="signatures flex-between font-bold">
+                      <div className="sign-block">
+                        <div className="sign-line">Signature of the Reviewer with Date</div>
+                        <div className="name-block mt-1">
+                          <div className="small-caps">{reviewerName}</div>
+                          <div className="font-normal text-sm small-caps">Name in Capitals</div>
+                        </div>
+                      </div>
+                      <div className="sign-block text-right">
+                        <div className="sign-line">Signature of the Examiner with Date</div>
+                        <div className="name-block mt-1 text-right">
+                          <div className="small-caps">{activeExaminer}</div>
+                          <div className="font-normal text-sm small-caps flex-end">Name in Capitals</div>
+                        </div>
                       </div>
                     </div>
-                    <div className="sign-block text-right">
-                      <div className="sign-line">Signature of the Examiner with Date</div>
-                      <div className="name-block mt-1 text-right">
-                        <div className="small-caps">{activeExaminer}</div>
-                        <div className="font-normal text-sm small-caps flex-end">Name in Capitals</div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
+                  </>
+                )}
+              </div>
+              ))}
             </div>
-            ))
           )}
           </div>
 
@@ -1022,7 +1106,9 @@ export default function App() {
                 <section className="utility-card utility-card-accent">
                   <div className="utility-card-label">Export</div>
                   <h3>Save PDF</h3>
-                  <button onClick={handleSavePdf} className="btn-primary utility-card-button">Save PDF</button>
+                  <button onClick={handleSavePdf} className="btn-primary utility-card-button" disabled={pdfExporting}>
+                    {pdfExporting ? 'Saving PDF...' : 'Save PDF'}
+                  </button>
                 </section>
               )}
 

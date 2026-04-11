@@ -2033,7 +2033,7 @@ body {
 }
 
 .marks-table th, .marks-table td {
-  border: 1px solid black;
+  border: 0.5px solid black;
   padding: 3px;
   font-size: 12pt;
 }

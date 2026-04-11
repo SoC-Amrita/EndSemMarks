@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { numberToWords } from './utils';
+import * as XLSX from 'xlsx';
 import studentsData from './students.json';
 import { supabase } from './supabaseClient';
 import Login from './Login';
@@ -100,9 +101,9 @@ export default function App() {
     'B': 'Prof. G Krishna Priya',
     'C': 'Prof. Anisha Radhakrishnan',
     'D': 'Mr. Vedaj J Padman',
-    'E': 'Prof. Suchithra M',
+    'E': 'Dr. Suchithra M',
     'F': 'Prof. G Krishna Priya',
-    'G': 'Prof. T Senthilkumar',
+    'G': 'Dr. T Senthilkumar',
     'H': 'Prof. Anisha Radhakrishnan'
   };
   const activeExaminer = facultyNames[activeSection] || 'Prof. P Malathi';
@@ -157,6 +158,58 @@ export default function App() {
     window.print();
   };
 
+  const handleExportExcel = () => {
+    const ws_data = [
+      ["Amrita Vishwa Vidyapeetham"],
+      ["B.Tech (2023) Degree Examination March 2026"],
+      ["Marks Sheet for Theory Examinations"],
+      ["Branch : Computer Science and Engineering", "", `Semester : VI ${activeSection}`, ""],
+      ["Subject Code & Title : 23CSE311 Software Engineering"],
+      [],
+      ["S.No.", "Roll No.", "Marks Awarded (Max Marks : 50)", ""],
+      ["", "", "In Figures", "In Words"]
+    ];
+
+    const activeStudentsData = studentsData[activeSection] || [];
+    activeStudentsData.forEach((rollNo, index) => {
+      const val = marks[activeSection]?.[rollNo] || '';
+      ws_data.push([index + 1, rollNo, val, numberToWords(val)]);
+    });
+
+    ws_data.push([]);
+    ws_data.push([]);
+    ws_data.push(["Signature of the Reviewer with Date", "", "", "Signature of the Examiner with Date"]);
+    ws_data.push([]);
+    ws_data.push([]);
+    ws_data.push([reviewerName, "", "", activeExaminer]);
+    ws_data.push(["Name in Capitals", "", "", "Name in Capitals"]);
+
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    
+    ws['!cols'] = [
+      { wch: 8 }, 
+      { wch: 20 },
+      { wch: 15 },
+      { wch: 40 }
+    ];
+
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } },
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 3 } },
+      { s: { r: 3, c: 0 }, e: { r: 3, c: 1 } },
+      { s: { r: 3, c: 2 }, e: { r: 3, c: 3 } },
+      { s: { r: 4, c: 0 }, e: { r: 4, c: 3 } },
+      { s: { r: 6, c: 0 }, e: { r: 7, c: 0 } },
+      { s: { r: 6, c: 1 }, e: { r: 7, c: 1 } },
+      { s: { r: 6, c: 2 }, e: { r: 6, c: 3 } }
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Marks");
+    XLSX.writeFile(wb, `Marks_Sheet_VI_${activeSection}.xlsx`);
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' || e.key === 'ArrowDown') {
       e.preventDefault();
@@ -181,12 +234,12 @@ export default function App() {
   let remaining = activeStudents;
   
   if (remaining.length > 0) {
-    studentChunks.push(remaining.slice(0, 32));
-    remaining = remaining.slice(32);
+    studentChunks.push(remaining.slice(0, 30));
+    remaining = remaining.slice(30);
   }
   while (remaining.length > 0) {
-    studentChunks.push(remaining.slice(0, 40));
-    remaining = remaining.slice(40);
+    studentChunks.push(remaining.slice(0, 36));
+    remaining = remaining.slice(36);
   }
 
   const downloadTemplate = () => {
@@ -275,6 +328,7 @@ export default function App() {
              </select>
 
              <button onClick={handlePrint} className="btn-primary">Print Sheet</button>
+             <button onClick={handleExportExcel} className="btn-primary" style={{ marginTop: '10px', background: '#28a745' }}>Download as Excel</button>
            </>
         )}
         
@@ -336,7 +390,7 @@ export default function App() {
             </thead>
             <tbody>
               {chunk.map((rollNo, chunkLocalIndex) => {
-                const overallIndex = chunkIndex === 0 ? chunkLocalIndex : (32 + ((chunkIndex - 1) * 40)) + chunkLocalIndex;
+                const overallIndex = chunkIndex === 0 ? chunkLocalIndex : (30 + ((chunkIndex - 1) * 36)) + chunkLocalIndex;
                 const val = marks[activeSection][rollNo] || '';
                 return (
                   <tr key={rollNo}>

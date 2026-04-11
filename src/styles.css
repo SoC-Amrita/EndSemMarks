@@ -172,9 +172,10 @@ body {
 .header-details { width: 100%; border: 1px solid transparent; } /* align padding if needed */
 
 .marks-table {
-  width: 100%;
+  width: 150mm;
+  table-layout: fixed;
+  margin: 0 auto 30px auto;
   border-collapse: collapse;
-  margin-bottom: 30px;
 }
 
 .marks-table th, .marks-table td {
@@ -192,11 +193,11 @@ body {
   text-align: center;
 }
 
-.col-sno { width: 5%; }
-.col-roll { width: 25%; }
-.col-marks { width: 70%; }
-.col-figures { width: 25%; }
-.col-words { width: 45%; }
+.col-sno { width: 10mm; min-width: 10mm; max-width: 10mm; }
+.col-roll { width: 30mm; min-width: 30mm; max-width: 30mm; }
+.col-marks { width: auto; }
+.col-figures { width: 20mm; min-width: 20mm; max-width: 20mm; }
+.col-words { width: 90mm; min-width: 90mm; max-width: 90mm; }
 
 .mark-input {
   width: 100%;
@@ -236,7 +237,7 @@ body {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 3mm;
+    margin: 8mm;
   }
   body {
     background: none;
@@ -261,26 +262,30 @@ body {
     box-shadow: none;
     margin: 0;
     padding: 0;
+    width: 100%;
+    min-height: auto;
   }
   .marks-table {
-    width: 100%;
+    width: 150mm;
+    margin: 0 auto;
+    page-break-inside: auto;
     table-layout: fixed;
   }
   .marks-table th, .marks-table td {
-    padding: 1px 2px;
-        font-size: 12px;
+    padding: 2px 4px;
+    font-size: 11pt;
   }
   .mark-input {
     appearance: none;
-    font-size: 12px;
+    font-size: 11pt;
     padding: 0;
   }
   .words-display {
-    font-size: 12px;
+    font-size: 11pt;
     min-height: auto;
   }
   .signatures {
     margin-top: 5px;
-    font-size: 10px;
+    font-size: 11pt;
   }
 }

@@ -585,17 +585,51 @@ body {
   margin-top: 10px;
 }
 
-.utility-card-accent {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--ui-panel-strong) 82%, transparent), color-mix(in srgb, var(--ui-soft-surface) 70%, transparent));
+.utility-card-combined {
+  gap: 0;
 }
 
-.utility-card-warning {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--ui-danger) 4%, var(--ui-panel-strong)), color-mix(in srgb, var(--ui-danger) 8%, var(--ui-soft-surface)));
+.utility-subsection {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--ui-line) 78%, transparent);
+}
+
+.utility-subsection:first-of-type {
+  margin-top: 6px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.utility-subsection-label {
+  color: var(--ui-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.utility-subsection-accent .utility-card-button {
+  margin-top: 10px;
+}
+
+.utility-subsection-warning .utility-danger-button {
+  margin-top: 10px;
 }
 
 .utility-card-button {
   width: 100%;
   margin-top: 16px;
+}
+
+.utility-pill-button {
+  width: auto;
+  align-self: flex-start;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1;
+  box-shadow: 0 10px 20px -18px color-mix(in srgb, var(--ui-accent) 48%, transparent);
 }
 
 .utility-danger-button {
@@ -617,10 +651,10 @@ body {
 }
 
 .utility-danger-button:hover {
-  border-color: color-mix(in srgb, var(--ui-accent) 34%, transparent);
-  background: color-mix(in srgb, var(--ui-soft-hover) 90%, var(--ui-panel-strong));
-  color: var(--ui-accent);
-  box-shadow: 0 14px 24px -18px color-mix(in srgb, var(--ui-accent) 54%, transparent);
+  border-color: color-mix(in srgb, var(--ui-danger) 34%, transparent);
+  background: color-mix(in srgb, var(--ui-danger) 10%, var(--ui-panel-strong));
+  color: color-mix(in srgb, var(--ui-danger) 92%, var(--ui-ink) 8%);
+  box-shadow: 0 14px 24px -18px color-mix(in srgb, var(--ui-danger) 54%, transparent);
   transform: translateY(-1px);
 }
 

@@ -1080,45 +1080,45 @@ export default function App() {
           {showUtilityRail && (
             <aside className="utility-rail no-print">
               {viewMode === 'sheet' && (
-                <section className="utility-card">
-                  <div className="utility-card-label">Reviewer</div>
-                  <h3>Select Reviewer</h3>
-                  <div className="reviewer-toggle" role="tablist" aria-label="Select reviewer">
-                    {REVIEWER_OPTIONS.map((reviewer) => {
-                      const isActive = reviewerName === reviewer;
-                      return (
-                        <button
-                          key={reviewer}
-                          type="button"
-                          className={`reviewer-toggle-button ${isActive ? 'reviewer-toggle-button-active' : ''}`}
-                          onClick={() => handleReviewerSelect(reviewer)}
-                          aria-pressed={isActive}
-                        >
-                          {reviewer}
-                        </button>
-                      );
-                    })}
+                <section className="utility-card utility-card-combined">
+                  <div className="utility-card-label">Sheet Tools</div>
+                  <h3>Review and Export</h3>
+
+                  <div className="utility-subsection">
+                    <div className="utility-subsection-label">Reviewer</div>
+                    <div className="reviewer-toggle" role="tablist" aria-label="Select reviewer">
+                      {REVIEWER_OPTIONS.map((reviewer) => {
+                        const isActive = reviewerName === reviewer;
+                        return (
+                          <button
+                            key={reviewer}
+                            type="button"
+                            className={`reviewer-toggle-button ${isActive ? 'reviewer-toggle-button-active' : ''}`}
+                            onClick={() => handleReviewerSelect(reviewer)}
+                            aria-pressed={isActive}
+                          >
+                            {reviewer}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </section>
-              )}
 
-              {viewMode === 'sheet' && (
-                <section className="utility-card utility-card-accent">
-                  <div className="utility-card-label">Export</div>
-                  <h3>Save PDF</h3>
-                  <button onClick={handleSavePdf} className="btn-primary utility-card-button" disabled={pdfExporting}>
-                    {pdfExporting ? 'Saving PDF...' : 'Save PDF'}
-                  </button>
-                </section>
-              )}
+                  <div className="utility-subsection utility-subsection-accent">
+                    <div className="utility-subsection-label">Export</div>
+                    <button onClick={handleSavePdf} className="btn-primary utility-card-button utility-pill-button" disabled={pdfExporting}>
+                      {pdfExporting ? 'Saving PDF...' : 'Save PDF'}
+                    </button>
+                  </div>
 
-              {userRole === 'admin' && viewMode === 'sheet' && (
-                <section className="utility-card utility-card-warning">
-                  <div className="utility-card-label">Section Records</div>
-                  <h3>Clear Saved Marks</h3>
-                  <button type="button" onClick={handleDeleteSection} className="utility-danger-button">
-                    Delete Saved Marks
-                  </button>
+                  {userRole === 'admin' && (
+                    <div className="utility-subsection utility-subsection-warning">
+                      <div className="utility-subsection-label">Section Records</div>
+                      <button type="button" onClick={handleDeleteSection} className="utility-danger-button">
+                        Delete Saved Marks
+                      </button>
+                    </div>
+                  )}
                 </section>
               )}
             </aside>

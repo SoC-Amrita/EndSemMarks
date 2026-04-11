@@ -92,6 +92,11 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const handleLoginComplete = async (sessionParam) => {
+    setLoadingInitial(true);
+    await initializeAuthAndData(sessionParam);
+  };
+
   const fetchMarks = async () => {
      if (!supabase) return;
      const { data, error } = await supabase.from('marks').select('*');
@@ -121,7 +126,7 @@ export default function App() {
   const activeExaminer = facultyNames[activeSection] || 'Prof. P Malathi';
 
   if (loadingInitial) return <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>Loading Secure Portal...</div>;
-  if (!session) return <Login onLoginComplete={setSession} />;
+  if (!session) return <Login onLoginComplete={handleLoginComplete} />;
   
   // Catch completely unassigned users
   if (!activeSection) {

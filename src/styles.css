@@ -172,10 +172,11 @@ body {
 .header-details { width: 100%; border: 1px solid transparent; } /* align padding if needed */
 
 .marks-table {
-  width: 150mm;
+  width: auto;
   table-layout: fixed;
   margin: 0 auto 30px auto;
   border-collapse: collapse;
+  font-size: 12pt;
 }
 
 .marks-table th, .marks-table td {
@@ -193,11 +194,11 @@ body {
   text-align: center;
 }
 
-.col-sno { width: 10mm; min-width: 10mm; max-width: 10mm; }
-.col-roll { width: 30mm; min-width: 30mm; max-width: 30mm; }
+.col-sno { width: 6ch; min-width: 6ch; max-width: 6ch; }
+.col-roll { width: 20ch; min-width: 20ch; max-width: 20ch; }
 .col-marks { width: auto; }
-.col-figures { width: 20mm; min-width: 20mm; max-width: 20mm; }
-.col-words { width: 90mm; min-width: 90mm; max-width: 90mm; }
+.col-figures { width: 14ch; min-width: 14ch; max-width: 14ch; }
+.col-words { width: 30ch; min-width: 30ch; max-width: 30ch; }
 
 .mark-input {
   width: 100%;
@@ -215,7 +216,7 @@ body {
 }
 
 .signatures {
-  margin-top: 50px;
+  margin-top: calc(50px + 4em);
   width: 100%;
 }
 
@@ -224,8 +225,7 @@ body {
 }
 
 .sign-line {
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 5px;
+  padding-top: 5px;
 }
 
 .name-block {
@@ -266,10 +266,11 @@ body {
     min-height: auto;
   }
   .marks-table {
-    width: 150mm;
+    width: auto;
     margin: 0 auto;
     page-break-inside: auto;
     table-layout: fixed;
+    font-size: 12pt;
   }
   .marks-table th, .marks-table td {
     padding: 2px 4px;

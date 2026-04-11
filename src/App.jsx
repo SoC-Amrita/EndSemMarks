@@ -16,6 +16,14 @@ export default function App() {
   const [userRole, setUserRole] = useState(null);
   const [reviewerName, setReviewerName] = useState('Dr. Vandhana S');
   const [debugMsg, setDebugMsg] = useState('');
+
+  // Reload reviewer per section when active section changes
+  useEffect(() => {
+    if (activeSection) {
+      const saved = localStorage.getItem(`reviewerName_${activeSection}`);
+      setReviewerName(saved || 'Dr. Vandhana S');
+    }
+  }, [activeSection]);
   
   // Storing marks per section
   const [marks, setMarks] = useState(() => {
@@ -322,7 +330,7 @@ export default function App() {
         {viewMode === 'sheet' && (
            <>
              <label>Reviewer Setup:</label>
-             <select value={reviewerName} onChange={e => setReviewerName(e.target.value)}>
+             <select value={reviewerName} onChange={e => { setReviewerName(e.target.value); localStorage.setItem(`reviewerName_${activeSection}`, e.target.value); }}>
                <option value="Dr. Vandhana S">Dr. Vandhana S</option>
                <option value="Prof. Neethu M R">Prof. Neethu M R</option>
              </select>
@@ -418,14 +426,14 @@ export default function App() {
             <div className="signatures flex-between font-bold">
               <div className="sign-block">
                 <div className="sign-line">Signature of the Reviewer with Date</div>
-                <div className="name-block mt-4">
+                <div className="name-block mt-1">
                   <div className="small-caps">{reviewerName}</div>
                   <div className="font-normal text-sm small-caps">Name in Capitals</div>
                 </div>
               </div>
               <div className="sign-block text-right">
                 <div className="sign-line">Signature of the Examiner with Date</div>
-                <div className="name-block mt-4 text-right">
+                <div className="name-block mt-1 text-right">
                   <div className="small-caps">{activeExaminer}</div>
                   <div className="font-normal text-sm small-caps flex-end">Name in Capitals</div>
                 </div>

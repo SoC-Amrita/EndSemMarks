@@ -22,14 +22,24 @@ CREATE TABLE IF NOT EXISTS public.marks (
     updated_by UUID REFERENCES auth.users(id) ON DELETE SET NULL
 );
 
+CREATE TABLE IF NOT EXISTS public.section_reviewers (
+    section TEXT PRIMARY KEY,
+    reviewer_name TEXT NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_by UUID REFERENCES auth.users(id) ON DELETE SET NULL
+);
+
 -- 2. Drop existing permissive policies if they exist (clean slate)
 DROP POLICY IF EXISTS "Enable read for authenticated users" ON public.marks;
 DROP POLICY IF EXISTS "Enable modification for authenticated users" ON public.marks;
+DROP POLICY IF EXISTS "Strict Reviewer Read Access" ON public.section_reviewers;
+DROP POLICY IF EXISTS "Strict Reviewer Modification Access" ON public.section_reviewers;
 
 -- ENABLE RLS on all tables
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.faculty_sections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.marks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.section_reviewers ENABLE ROW LEVEL SECURITY;
 
 -- 3. RBAC Policies for `user_roles` and `faculty_sections`
 -- Users can check their own roles and section mappings globally
@@ -72,6 +82,27 @@ WITH CHECK (
    EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin')
    OR
    EXISTS (SELECT 1 FROM public.faculty_sections WHERE user_id = auth.uid() AND section = marks.section)
+);
+
+CREATE POLICY "Strict Reviewer Read Access"
+ON public.section_reviewers FOR SELECT TO authenticated
+USING (
+   EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin')
+   OR
+   EXISTS (SELECT 1 FROM public.faculty_sections WHERE user_id = auth.uid() AND section = section_reviewers.section)
+);
+
+CREATE POLICY "Strict Reviewer Modification Access"
+ON public.section_reviewers FOR ALL TO authenticated
+USING (
+   EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin')
+   OR
+   EXISTS (SELECT 1 FROM public.faculty_sections WHERE user_id = auth.uid() AND section = section_reviewers.section)
+)
+WITH CHECK (
+   EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin')
+   OR
+   EXISTS (SELECT 1 FROM public.faculty_sections WHERE user_id = auth.uid() AND section = section_reviewers.section)
 );
 
 -- 5. Automated Admin Elevating Trigger

@@ -16,6 +16,7 @@ function wholeToWords(n) {
 export function numberToWords(num) {
   if (num === null || num === undefined || num === '') return '';
   const strVal = String(num).trim();
+  if (strVal === '-' || strVal === '–' || strVal === '—') return '—';
   const normalized = strVal.toUpperCase().replace(/[^A-Z]/g, '');
   if (normalized === 'AB' || normalized === 'ABSENT') return '-- Absent --';
 

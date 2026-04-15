@@ -17,7 +17,7 @@ export function numberToWords(num) {
   if (num === null || num === undefined || num === '') return '';
   const strVal = String(num).trim();
   const normalized = strVal.toUpperCase().replace(/[^A-Z]/g, '');
-  if (normalized === 'AB' || normalized === 'ABSENT') return 'Absent';
+  if (normalized === 'AB' || normalized === 'ABSENT') return '-- Absent --';
 
   // Validate number format including decimals
   if (!/^\d+(\.\d+)?$/.test(strVal)) return '';

@@ -477,7 +477,9 @@ export default function App() {
   const handleMarkChange = async (rollNo, value) => {
     let finalVal = value;
     const vMatch = finalVal.toLowerCase().trim();
-    if (vMatch === 'ab' || vMatch === '-ab-') {
+    if (finalVal.trim() === '-') {
+      finalVal = '—';
+    } else if (vMatch === 'ab' || vMatch === '-ab-') {
       finalVal = '-AB-';
     }
     
@@ -664,7 +666,8 @@ export default function App() {
            
            if (!rollNo) continue;
            const vMatch = markVal.toLowerCase().trim();
-           if (vMatch === 'ab' || vMatch === '-ab-') markVal = '-AB-';
+           if (markVal.trim() === '-') markVal = '—';
+           else if (vMatch === 'ab' || vMatch === '-ab-') markVal = '-AB-';
            
            newMarksChunk[rollNo] = markVal;
            upsertPayload.push({

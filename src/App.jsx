@@ -623,8 +623,8 @@ export default function App() {
   let remaining = activeStudents;
   
   if (remaining.length > 0) {
-    studentChunks.push(remaining.slice(0, 30));
-    remaining = remaining.slice(30);
+    studentChunks.push(remaining.slice(0, 32));
+    remaining = remaining.slice(32);
   }
   while (remaining.length > 0) {
     studentChunks.push(remaining.slice(0, 36));
@@ -1033,7 +1033,7 @@ export default function App() {
                   </thead>
                   <tbody>
                     {chunk.map((rollNo, chunkLocalIndex) => {
-                      const overallIndex = chunkIndex === 0 ? chunkLocalIndex : (30 + ((chunkIndex - 1) * 36)) + chunkLocalIndex;
+                      const overallIndex = chunkIndex === 0 ? chunkLocalIndex : (32 + ((chunkIndex - 1) * 36)) + chunkLocalIndex;
                       const val = marks[activeSection][rollNo] || '';
                       return (
                         <tr key={rollNo}>
@@ -1059,7 +1059,7 @@ export default function App() {
 
                 {chunkIndex === studentChunks.length - 1 && (
                   <>
-                    <div style={{ height: '120px' }}></div>
+                    <div style={{ height: '72px' }}></div>
                     <div className="signatures flex-between font-bold">
                       <div className="sign-block">
                         <div className="sign-line">Signature of the Reviewer with Date</div>

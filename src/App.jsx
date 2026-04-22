@@ -11,16 +11,17 @@ const ACTIVE_SECTION_STORAGE_KEY = 'marks-app-active-section';
 const DEFAULT_REVIEWER = 'Dr. Vandhana S';
 const DEFAULT_REVIEWER_OPTIONS = ['Dr. Vandhana S', 'Prof. Neethu M R'];
 const SECTION_REVIEWER_DEFAULTS = {
-  BA: 'Prof. P Subathra',
+  BA: 'Dr. T R Swapna',
 };
 const SECTION_REVIEWER_OPTIONS = {
-  BA: ['Prof. P Subathra'],
+  BA: ['Dr. T R Swapna', 'Dr. Aarthi R'],
 };
 const SECTION_METADATA = {
   BA: {
     label: 'BA',
     branch: 'CSE (Elective)',
     subject: '23CSE452 Business Analytics',
+    maxMarks: 30,
     examiner: 'Prof. Vedaj J Padman',
   },
 };
@@ -454,6 +455,7 @@ export default function App() {
   const activeClassLabel = getSectionLabel(activeSection);
   const activeBranchLabel = activeSectionMetadata.branch || `CSE ${activeSection}`;
   const activeSubjectTitle = activeSectionMetadata.subject || '23CSE311 Software Engineering';
+  const activeMaxMarks = activeSectionMetadata.maxMarks || 50;
   const activeExaminer = activeSectionMetadata.examiner || facultyNames[activeSection] || 'Dr. Malathi P';
   const activeReviewerOptions = SECTION_REVIEWER_OPTIONS[activeSection] || DEFAULT_REVIEWER_OPTIONS;
 
@@ -1060,7 +1062,7 @@ export default function App() {
                     <tr>
                       <th className="col-sno" rowSpan="2">S.No.</th>
                       <th className="col-roll" rowSpan="2">Roll No.</th>
-                      <th className="col-marks" colSpan="2">Marks Awarded (Max Marks : 50)</th>
+                      <th className="col-marks" colSpan="2">Marks Awarded (Max Marks : {activeMaxMarks})</th>
                     </tr>
                     <tr>
                       <th className="col-figures">In Figures</th>

@@ -660,8 +660,8 @@ export default function App() {
   let remaining = activeStudents;
   
   if (remaining.length > 0) {
-    studentChunks.push(remaining.slice(0, 32));
-    remaining = remaining.slice(32);
+    studentChunks.push(remaining.slice(0, 34));
+    remaining = remaining.slice(34);
   }
   while (remaining.length > 0) {
     studentChunks.push(remaining.slice(0, 37));
@@ -1071,7 +1071,7 @@ export default function App() {
                   </thead>
                   <tbody>
                     {chunk.map((rollNo, chunkLocalIndex) => {
-                      const overallIndex = chunkIndex === 0 ? chunkLocalIndex : (32 + ((chunkIndex - 1) * 37)) + chunkLocalIndex;
+                      const overallIndex = chunkIndex === 0 ? chunkLocalIndex : (34 + ((chunkIndex - 1) * 37)) + chunkLocalIndex;
                       const val = marks[activeSection][rollNo] || '';
                       return (
                         <tr key={rollNo}>

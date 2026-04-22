@@ -9,11 +9,39 @@ const FONT_STORAGE_KEY = 'evalwiz-font-preference';
 const VIEW_MODE_STORAGE_KEY = 'marks-app-view-mode';
 const ACTIVE_SECTION_STORAGE_KEY = 'marks-app-active-section';
 const DEFAULT_REVIEWER = 'Dr. Vandhana S';
-const REVIEWER_OPTIONS = ['Dr. Vandhana S', 'Prof. Neethu M R'];
+const DEFAULT_REVIEWER_OPTIONS = ['Dr. Vandhana S', 'Prof. Neethu M R'];
+const SECTION_REVIEWER_DEFAULTS = {
+  BA: 'Prof. P Subathra',
+};
+const SECTION_REVIEWER_OPTIONS = {
+  BA: ['Prof. P Subathra'],
+};
+const SECTION_METADATA = {
+  BA: {
+    label: 'BA',
+    branch: 'CSE (Elective)',
+    subject: '23CSE452 Business Analytics',
+    examiner: 'Prof. Vedaj J Padman',
+  },
+};
 const FONT_OPTIONS = [
   { value: 'sans', label: 'Sans' },
   { value: 'serif', label: 'Serif' },
 ];
+
+function getDefaultReviewer(section) {
+  return SECTION_REVIEWER_DEFAULTS[section] || DEFAULT_REVIEWER;
+}
+
+function getSectionLabel(section) {
+  if (!section) return '';
+  return SECTION_METADATA[section]?.label || `VI ${section}`;
+}
+
+function getSectionFileSlug(section) {
+  if (!section) return 'section';
+  return section.toLowerCase() === 'ba' ? 'ba' : `vi_${section}`;
+}
 
 function getScopedStorageKey(baseKey, userId, suffix = '') {
   if (!userId) return null;
@@ -22,7 +50,7 @@ function getScopedStorageKey(baseKey, userId, suffix = '') {
 
 function buildDefaultReviewerState(sections) {
   return sections.reduce((acc, section) => {
-    acc[section] = DEFAULT_REVIEWER;
+    acc[section] = getDefaultReviewer(section);
     return acc;
   }, {});
 }
@@ -191,7 +219,7 @@ export default function App() {
 
   useEffect(() => {
     if (!activeSection) return;
-    setReviewerName(reviewersBySection[activeSection] || DEFAULT_REVIEWER);
+    setReviewerName(reviewersBySection[activeSection] || getDefaultReviewer(activeSection));
   }, [activeSection, reviewersBySection]);
 
   useEffect(() => {
@@ -406,7 +434,7 @@ export default function App() {
      const next = { ...defaults };
      data?.forEach((row) => {
        if (row.section) {
-         next[row.section] = row.reviewer_name || DEFAULT_REVIEWER;
+         next[row.section] = row.reviewer_name || getDefaultReviewer(row.section);
        }
      });
      setReviewersBySection(next);
@@ -422,7 +450,12 @@ export default function App() {
     'G': 'Dr. T Senthilkumar',
     'H': 'Prof. Anisha Radhakrishnan'
   };
-  const activeExaminer = facultyNames[activeSection] || 'Dr. Malathi P';
+  const activeSectionMetadata = SECTION_METADATA[activeSection] || {};
+  const activeClassLabel = getSectionLabel(activeSection);
+  const activeBranchLabel = activeSectionMetadata.branch || `CSE ${activeSection}`;
+  const activeSubjectTitle = activeSectionMetadata.subject || '23CSE311 Software Engineering';
+  const activeExaminer = activeSectionMetadata.examiner || facultyNames[activeSection] || 'Dr. Malathi P';
+  const activeReviewerOptions = SECTION_REVIEWER_OPTIONS[activeSection] || DEFAULT_REVIEWER_OPTIONS;
 
   const knownFacultyProfiles = {
     'jp_vedaj@cb.amrita.edu': 'Prof. Vedaj J Padman',
@@ -589,7 +622,7 @@ export default function App() {
         exportRoot.removeChild(clone);
       }
 
-      pdf.save(`marks_sheet_vi_${activeSection}.pdf`);
+      pdf.save(`marks_sheet_${getSectionFileSlug(activeSection)}.pdf`);
     } catch (error) {
       window.alert(`Unable to export PDF: ${error?.message || 'Unexpected error'}`);
     } finally {
@@ -640,7 +673,7 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `template_vi_${activeSection}.csv`);
+    link.setAttribute("download", `template_${getSectionFileSlug(activeSection)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -690,7 +723,7 @@ export default function App() {
       if (supabase && upsertPayload.length > 0) {
          await supabase.from('marks').upsert(upsertPayload);
          setViewMode('sheet');
-         alert(`Successfully imported ${upsertPayload.length} marks for section VI ${activeSection}!`);
+         alert(`Successfully imported ${upsertPayload.length} marks for ${activeClassLabel}!`);
       } else if (upsertPayload.length > 0) {
          setViewMode('sheet');
       }
@@ -699,14 +732,14 @@ export default function App() {
   };
 
   const handleDeleteSection = async () => {
-    if (!window.confirm(`Delete ALL marks for Section VI ${activeSection}? This cannot be undone.`)) return;
+    if (!window.confirm(`Delete ALL marks for ${activeClassLabel}? This cannot be undone.`)) return;
     if (supabase) {
       const { error } = await supabase.from('marks').delete().eq('section', activeSection);
       if (error) {
         alert('Error deleting records: ' + error.message);
       } else {
         setMarks(prev => ({ ...prev, [activeSection]: {} }));
-        alert(`All marks for Section VI ${activeSection} have been cleared.`);
+        alert(`All marks for ${activeClassLabel} have been cleared.`);
       }
     }
   };
@@ -809,7 +842,7 @@ export default function App() {
         <div className="sidebar-status-card">
           <div>
             <span className="sidebar-status-label">Active Section</span>
-            <strong>VI {activeSection}</strong>
+            <strong>{activeClassLabel}</strong>
           </div>
           <span className="sidebar-role-pill">{userRole === 'admin' ? 'Admin' : 'Faculty'}</span>
         </div>
@@ -849,7 +882,7 @@ export default function App() {
                   onClick={() => setActiveSection(sec)}
                   aria-pressed={isActive}
                 >
-                  VI {sec}
+                  {getSectionLabel(sec)}
                 </button>
               );
             })}
@@ -863,7 +896,7 @@ export default function App() {
           <div className="top-navbar-actions">
             <div className="top-navbar-header-copy">
               <span className="sidebar-status-label">Marks Workspace</span>
-              <div className="top-navbar-header-label">Section VI {activeSection} · {viewMode === 'sheet' ? 'Marks Entry' : 'CSV Import'}</div>
+              <div className="top-navbar-header-label">{activeClassLabel} · {viewMode === 'sheet' ? 'Marks Entry' : 'CSV Import'}</div>
             </div>
 
             <div className="top-navbar-account" ref={accountMenuRef}>
@@ -970,7 +1003,7 @@ export default function App() {
             <div className="bulk-manager">
               <div className="bulk-manager-header">
                 <span className="bulk-kicker">CSV Import</span>
-                <h3>Bulk sync for Section VI {activeSection}</h3>
+                <h3>Bulk sync for {activeClassLabel}</h3>
                 <p>Use the prepared roster template, fill in marks offline, and upload the completed CSV to update this section in one pass.</p>
               </div>
 
@@ -987,7 +1020,7 @@ export default function App() {
                 <section className="bulk-card bulk-card-upload">
                   <span className="bulk-card-step">Step 2</span>
                   <h4>Upload the completed file</h4>
-                  <p>Accepted format: `.csv`. The upload syncs marks directly to the database for Section VI {activeSection}.</p>
+                  <p>Accepted format: `.csv`. The upload syncs marks directly to the database for {activeClassLabel}.</p>
                   <div className="file-input-wrapper">
                     <input type="file" accept=".csv" onChange={handleFileUpload} />
                     <div className="file-input-copy">
@@ -1016,11 +1049,11 @@ export default function App() {
                           <th colSpan="4" className="text-center font-bold small-caps no-border" style={{ fontSize: '16pt' }}>Marks Sheet for Theory Examinations</th>
                         </tr>
                         <tr>
-                          <th colSpan="3" className="font-bold no-border" style={{ textAlign: "left", whiteSpace: "nowrap" }}>Branch : CSE {activeSection}</th>
+                          <th colSpan="3" className="font-bold no-border" style={{ textAlign: "left", whiteSpace: "nowrap" }}>Branch : {activeBranchLabel}</th>
                           <th colSpan="1" className="font-bold no-border" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Semester : VI</th>
                         </tr>
                         <tr>
-                          <th colSpan="4" className="font-bold no-border" style={{ textAlign: "left" }}>Subject Code & Title : 23CSE311 Software Engineering</th>
+                          <th colSpan="4" className="font-bold no-border" style={{ textAlign: "left" }}>Subject Code & Title : {activeSubjectTitle}</th>
                         </tr>
                       </>
                     )}
@@ -1097,7 +1130,7 @@ export default function App() {
                   <div className="utility-subsection">
                     <div className="utility-subsection-label">Reviewer</div>
                     <div className="reviewer-toggle" role="tablist" aria-label="Select reviewer">
-                      {REVIEWER_OPTIONS.map((reviewer) => {
+                      {activeReviewerOptions.map((reviewer) => {
                         const isActive = reviewerName === reviewer;
                         return (
                           <button
